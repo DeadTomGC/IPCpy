@@ -1,8 +1,10 @@
+import threading
+import thread
 import time
 import sys
 from threading  import Thread
 from Queue import Queue, Empty
-refreshRate = 5; #Hz
+refreshRate = 5 #Hz
 warn = False
 def enqueue_output(out, queue):
     for line in iter(out.readline, b''):
@@ -55,12 +57,36 @@ def Sync():
     oldTime=time.time()
 
 
+def detect_motion():
+    global motion
+    lock.acquire()
+    motion = "wave"
+    lock.release()
+    while True:
+        lock.acquire()
+        if motion == "none":
+            sys.stderr.write("setting to wave\n");
+            motion = "wave"
+        lock.release()
+
 def loop():
     p.write(str(int(p.line[:-1])+1)+"\n")
 
+lock = threading.Lock()
+lock.acquire()
+motion = "none"
+lock.release()
 p = process(True,"mirror.py")
 p.setOnReadLine(loop)
+
+thread.start_new_thread(detect_motion,())
+
 InitSync()
+
 while True:
+    if motion !="none":
+        lock.acquire()
+        motion = "none"
+        lock.release()
     p.tryReadLine()
     Sync()

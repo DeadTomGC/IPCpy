@@ -4,7 +4,7 @@ import pipes
 import sys
 from threading  import Thread
 from Queue import Queue, Empty
-refreshRate = 5; #Hz
+refreshRate = 5 #Hz
 warn = False
 def enqueue_output(out, queue):
     for line in iter(out.readline, b''):
